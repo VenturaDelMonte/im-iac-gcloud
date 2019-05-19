@@ -17,7 +17,7 @@ resource "google_compute_instance" "master" {
     initialize_params {
       image = "${data.google_compute_image.base_compute_image.self_link}"
       size = "${var.master["disk_size"]}"
-      type = "pd-standard"
+      type = "${var.master["boot_disk_type"]}"
     }
   }
 
@@ -26,6 +26,11 @@ resource "google_compute_instance" "master" {
     access_config {
       nat_ip = "${google_compute_address.master-address.address}"
     }
+  }
+
+  scheduling {
+    preemptible = "${var.master["preemptible"]}"
+    automatic_restart = "${var.master["allow_restart"]}"
   }
 
   can_ip_forward = true
@@ -113,8 +118,17 @@ resource "google_compute_instance" "worker" {
     initialize_params {
       image = "${data.google_compute_image.base_compute_image.self_link}"
       size = "${var.worker["disk_size"]}"
-      type = "pd-standard"
+      type = "${var.worker["boot_disk_type"]}"
     }
+  }
+
+  scratch_disk {
+    interface = "${var.worker["scratch_disk_interface"]}"  
+  }
+
+  scheduling {
+    preemptible = "${var.worker["preemptible"]}"
+    automatic_restart = "${var.worker["allow_restart"]}"
   }
 
   network_interface {

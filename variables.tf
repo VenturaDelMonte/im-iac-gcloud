@@ -45,7 +45,10 @@ variable "master" {
   default = {
     machine_type        = "n1-standard-1"
     disk_size           = 10
+    boot_disk_type      = "pd-standard"
     hostname            = "master"
+    preemtible          = false
+    allow_restart       = false
   }
 }
 
@@ -53,10 +56,14 @@ variable "worker" {
   type = "map"
 
   default = {
-    machine_type        = "n1-standard-1"
+    machine_type        = "n1-standard-8"
     disk_size           = 10
     quantity            = 1
+    boot_disk_type      = "pd-standard"
+    scratch_disk_interface = "NVME"
     hostname            = "worker"
+    preemtible          = true
+    allow_restart       = false
   }
 }
 
