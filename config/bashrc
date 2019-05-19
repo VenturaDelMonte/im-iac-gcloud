@@ -1,0 +1,8 @@
+
+export PDSH_RCMD_TYPE=ssh
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+alias ll='ls -lah'
+alias l='ls -lah'
+
+
