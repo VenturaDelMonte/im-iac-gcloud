@@ -39,11 +39,11 @@ resource "null_resource" "cluster-preconfig-hook-continue-on-fail" {
   count = "${var.on_hook_failure != "fail" ? local.cluster_size : 0}"
 
   connection {
-      host          = "${element(local.all-ips, count.index)}"
-      user          = "${var.ssh_user}"
-      private_key   = "${local.ssh_key}"
-      agent         = "${local.ssh_agent}"
-      bastion_host  = "${local.bastion-host}"
+    host          = "${element(local.all-ips, count.index)}"
+    user          = "${var.ssh_user}"
+    private_key   = "${local.ssh_key}"
+    agent         = "${local.ssh_agent}"
+    bastion_host  = "${local.bastion-host}"
   }
 
   # Run cluster-preconfig commands
@@ -60,11 +60,11 @@ resource "null_resource" "deploy-config" {
   count = "${local.cluster_size}"
 
   connection {
-      host          = "${element(local.all-ips, count.index)}"
-      user          = "${var.ssh_user}"
-      private_key   = "${local.ssh_key}"
-      agent         = "${local.ssh_agent}"
-      bastion_host  = "${local.bastion-host}"
+    host          = "${element(local.all-ips, count.index)}"
+    user          = "${var.ssh_user}"
+    private_key   = "${local.ssh_key}"
+    agent         = "${local.ssh_agent}"
+    bastion_host  = "${local.bastion-host}"
   }
 
   provisioner "remote-exec" {
@@ -91,6 +91,24 @@ resource "null_resource" "deploy-config" {
   }
 }
 
+# resource "null_resource" "start-flink" {
+#   depends_on = ["null_resource.deploy-config"]
+
+#   connection {
+#     host          = "${local.master-node}"
+#     user          = "${var.ssh_user}"
+#     private_key   = "${local.ssh_key}"
+#     agent         = "${local.ssh_agent}"
+#     bastion_host  = "${local.bastion-host}"
+#   }
+
+#   provisioner "remote-exec" {
+#     inline = [
+#       "/opt/ventura/framework/flink-build/bin/start-cluster.sh"
+#     ]
+#   }
+  
+# }
 
 
 locals {

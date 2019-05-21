@@ -33,4 +33,8 @@ mount /dev/nvme0n1 /data/1/
 chmod a+w /data/1/
 chown -R ventura:ventura /data/1/
 
+echo "* - nofile 65536" | tee -a /etc/security/limits.conf
+echo "* - nproc 65536" | tee -a /etc/security/limits.conf
+echo "* - memlock unlimited" | tee -a /etc/security/limits.conf
+
 touch /opt/ventura/.bootstrap_complete
