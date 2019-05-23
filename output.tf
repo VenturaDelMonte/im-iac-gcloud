@@ -1,20 +1,20 @@
 
-output "Master Address" {
+output "master-address" {
     value = "${google_compute_address.master-address.address}"
 }
 
-output "All Addresses" {
+output "all-addresses" {
     value = "${local.all-ips}"
 }
 
-output "Bastion Address" {
+output "bastion-address" {
     value = "${local.bastion-host}"
 }
 
-output "Master Internal Address" {
+output "master-internal-address" {
     value = "${local.master-node}"
 }
 
-output "SSH Command" {
+output "ssh-command" {
     value = "gcloud compute ssh ${var.ssh_user}@im-master --ssh-key-file=/Users/ventura/.ssh/gcloud_rsa -- -D 1080"
 }

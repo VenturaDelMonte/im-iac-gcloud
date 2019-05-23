@@ -47,7 +47,7 @@ variable "master" {
     disk_size           = 10
     boot_disk_type      = "pd-standard"
     hostname            = "master"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }
@@ -62,7 +62,7 @@ variable "worker" {
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "worker"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }

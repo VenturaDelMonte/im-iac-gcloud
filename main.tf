@@ -77,9 +77,6 @@ resource "null_resource" "deploy-config" {
     source = "${path.module}/scripts/deploy.sh"
     destination = "/tmp/deploy.sh"
   }
-
-
-
   provisioner "remote-exec" {
     inline = [
       "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",

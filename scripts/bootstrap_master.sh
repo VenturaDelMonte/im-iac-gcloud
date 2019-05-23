@@ -18,6 +18,7 @@ until apt-get install -y \
     tmux \
     vim \
     cmake \
+    ntp \
     iperf3 \
     git \
     htop \
@@ -33,6 +34,12 @@ until apt-get install -y \
     sleep 2
 done
 
+service ntp stop
+cp /etc/ntp.conf /etc/ntp.conf.backup
+sed -i '/^pool/s/^/#/g' /etc/ntp.conf
+echo "server metadata.google.internal iburst" | tee -a /etc/ntp.conf
+service ntp restart
+
 echo 3 | sudo tee /proc/sys/vm/drop_caches
 
 mkdir -p /opt/ventura
@@ -41,6 +48,9 @@ chown -R ventura:ventura /opt/ventura/framework
 
 mkdir -p /data/1
 chown -R ventura:ventura /data/1
+
+mkdir -p /data/2
+chown -R ventura:ventura /data/2
 
 echo "* - nofile 65536" | tee -a /etc/security/limits.conf
 echo "* - nproc 65536" | tee -a /etc/security/limits.conf

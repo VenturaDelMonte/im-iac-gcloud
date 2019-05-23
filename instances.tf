@@ -104,11 +104,11 @@ EOF
 }
 
 resource "google_compute_instance" "worker" {
-  name = "${format("im-worker-%d", count.index + 1)}"
+  name = "${format("im-worker-%02d", count.index + 1)}"
   machine_type = "${var.worker["machine_type"]}"
   zone = "${var.region}-${var.zone}"
   count = "${var.worker["quantity"]}"
-  #hostname = "${format("worker-%d.im-cluster", count.index + 1)}"
+  hostname = "${format("im-worker-%02d.im-cluster", count.index + 1)}"
 
   allow_stopping_for_update = true
 
@@ -120,6 +120,10 @@ resource "google_compute_instance" "worker" {
       size = "${var.worker["disk_size"]}"
       type = "${var.worker["boot_disk_type"]}"
     }
+  }
+
+  scratch_disk {
+    interface = "${var.worker["scratch_disk_interface"]}"  
   }
 
   scratch_disk {
