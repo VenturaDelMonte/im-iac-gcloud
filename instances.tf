@@ -208,3 +208,209 @@ runcmd:
 EOF
   }
 }
+
+
+resource "google_compute_instance" "broker" {
+  name = "${format("im-broker-%02d", count.index + 1)}"
+  machine_type = "${var.broker["machine_type"]}"
+  zone = "${var.region}-${var.zone}"
+  count = "${var.broker["quantity"]}"
+  hostname = "${format("im-broker-%02d.im-cluster", count.index + 1)}"
+
+  allow_stopping_for_update = true
+
+  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}"]
+
+  boot_disk {
+    initialize_params {
+      image = "${data.google_compute_image.base_compute_image.self_link}"
+      size = "${var.broker["disk_size"]}"
+      type = "${var.broker["boot_disk_type"]}"
+    }
+  }
+
+  scratch_disk {
+    interface = "${var.broker["scratch_disk_interface"]}"  
+  }
+
+  scratch_disk {
+    interface = "${var.broker["scratch_disk_interface"]}"  
+  }
+
+  scheduling {
+    preemptible = "${var.broker["preemptible"]}"
+    automatic_restart = "${var.broker["allow_restart"]}"
+  }
+
+  network_interface {
+    subnetwork  = "${google_compute_subnetwork.im_subnet.self_link}"
+    
+  }
+
+  can_ip_forward = true
+
+  service_account {
+    email = "${var.service_account_email}"
+    scopes = ["storage-ro", "logging-write", "monitoring"]
+  }
+
+  metadata_startup_script = <<EOF
+""
+#!/bin/bash
+apt -y install cloud-init
+rm -f /var/log/cloud-init.log
+rm -Rf /var/lib/cloud/*
+cloud-init -d init
+cloud-init -d modules --mode=config
+cloud-init -d modules --mode=final
+"}
+EOF
+
+  metadata {
+    sshKeys = <<EOF
+${var.ssh_user}:${file(var.ssh_key)}
+EOF
+    user-data = <<EOF
+#cloud-config
+users:
+- name: ventura
+  groups: [ wheel ]
+  sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+  shell: /bin/bash
+  ssh-authorized-keys:
+  - ${tls_private_key.ssh.public_key_openssh}
+write_files:
+- encoding: b64
+  content: ${base64encode(file("${path.module}/scripts/bootstrap_worker.sh"))}
+  permissions: '0755'
+  path: /opt/ventura/scripts/bootstrap.sh
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/bashrc"))}
+  permissions: '0600'
+  path: /home/ventura/.bashrc
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/ssh_config"))}
+  permissions: '0400'
+  path: /home/ventura/.ssh/config
+- encoding: b64
+  content: ${base64encode("${tls_private_key.ssh.private_key_pem}")}
+  permissions: '0600'
+  path: /home/ventura/.ssh/id_rsa
+- encoding: b64
+  content: ${base64encode("${tls_private_key.ssh.public_key_openssh}")}
+  permissions: '0600'
+  path: /home/ventura/.ssh/id_rsa.pub
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/profile"))}
+  permissions: '0600'
+  path: /home/ventura/.profile
+runcmd:
+- chown ventura:ventura /home/ventura/.ssh/id_rsa.pub
+- chown ventura:ventura /home/ventura/.ssh/id_rsa
+- chown ventura:ventura /home/ventura/.bashrc
+- chown ventura:ventura /home/ventura/.ssh/config
+- chown ventura:ventura /home/ventura/.profile
+- chown -R ventura:ventura /home/ventura
+- /opt/ventura/scripts/bootstrap.sh
+EOF
+  }
+}
+
+
+resource "google_compute_instance" "generator" {
+  name = "${format("im-generator-%02d", count.index + 1)}"
+  machine_type = "${var.generator["machine_type"]}"
+  zone = "${var.region}-${var.zone}"
+  count = "${var.generator["quantity"]}"
+  hostname = "${format("im-generator-%02d.im-cluster", count.index + 1)}"
+
+  allow_stopping_for_update = true
+
+  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}"]
+
+  boot_disk {
+    initialize_params {
+      image = "${data.google_compute_image.base_compute_image.self_link}"
+      size = "${var.generator["disk_size"]}"
+      type = "${var.generator["boot_disk_type"]}"
+    }
+  }
+  
+  scheduling {
+    preemptible = "${var.generator["preemptible"]}"
+    automatic_restart = "${var.generator["allow_restart"]}"
+  }
+
+  network_interface {
+    subnetwork  = "${google_compute_subnetwork.im_subnet.self_link}"
+    
+  }
+
+  can_ip_forward = true
+
+  service_account {
+    email = "${var.service_account_email}"
+    scopes = ["storage-ro", "logging-write", "monitoring"]
+  }
+
+  metadata_startup_script = <<EOF
+""
+#!/bin/bash
+apt -y install cloud-init
+rm -f /var/log/cloud-init.log
+rm -Rf /var/lib/cloud/*
+cloud-init -d init
+cloud-init -d modules --mode=config
+cloud-init -d modules --mode=final
+"}
+EOF
+
+  metadata {
+    sshKeys = <<EOF
+${var.ssh_user}:${file(var.ssh_key)}
+EOF
+    user-data = <<EOF
+#cloud-config
+users:
+- name: ventura
+  groups: [ wheel ]
+  sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+  shell: /bin/bash
+  ssh-authorized-keys:
+  - ${tls_private_key.ssh.public_key_openssh}
+write_files:
+- encoding: b64
+  content: ${base64encode(file("${path.module}/scripts/bootstrap_worker.sh"))}
+  permissions: '0755'
+  path: /opt/ventura/scripts/bootstrap.sh
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/bashrc"))}
+  permissions: '0600'
+  path: /home/ventura/.bashrc
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/ssh_config"))}
+  permissions: '0400'
+  path: /home/ventura/.ssh/config
+- encoding: b64
+  content: ${base64encode("${tls_private_key.ssh.private_key_pem}")}
+  permissions: '0600'
+  path: /home/ventura/.ssh/id_rsa
+- encoding: b64
+  content: ${base64encode("${tls_private_key.ssh.public_key_openssh}")}
+  permissions: '0600'
+  path: /home/ventura/.ssh/id_rsa.pub
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/profile"))}
+  permissions: '0600'
+  path: /home/ventura/.profile
+runcmd:
+- chown ventura:ventura /home/ventura/.ssh/id_rsa.pub
+- chown ventura:ventura /home/ventura/.ssh/id_rsa
+- chown ventura:ventura /home/ventura/.bashrc
+- chown ventura:ventura /home/ventura/.ssh/config
+- chown ventura:ventura /home/ventura/.profile
+- chown -R ventura:ventura /home/ventura
+- /opt/ventura/scripts/bootstrap.sh
+EOF
+  }
+}

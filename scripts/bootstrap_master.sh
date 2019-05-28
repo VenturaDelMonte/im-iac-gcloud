@@ -40,16 +40,23 @@ sed -i '/^pool/s/^/#/g' /etc/ntp.conf
 echo "server metadata.google.internal iburst" | tee -a /etc/ntp.conf
 service ntp restart
 
+curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+bash install-monitoring-agent.sh
+
 echo 3 | sudo tee /proc/sys/vm/drop_caches
 
 mkdir -p /opt/ventura
 mkdir -p /opt/ventura/framework
 chown -R ventura:ventura /opt/ventura/framework
 
-mkdir -p /data/1
+mkdir -p /data/1/data
+mkdir -p /data/1/check
+mkdir -p /data/1/tmp
+mkdir -p /data/1/namenode
 chown -R ventura:ventura /data/1
 
 mkdir -p /data/2
+mkdir -p /data/2/zookeeper/tmp/
 chown -R ventura:ventura /data/2
 
 echo "* - nofile 65536" | tee -a /etc/security/limits.conf

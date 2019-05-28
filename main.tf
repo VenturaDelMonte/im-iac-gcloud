@@ -57,10 +57,10 @@ resource "null_resource" "cluster-preconfig-hook-continue-on-fail" {
 
 resource "null_resource" "deploy-config" {
   depends_on = ["null_resource.cluster-preconfig-hook-continue-on-fail", "null_resource.cluster-preconfig-hook-stop-on-fail"]
-  count = "${local.cluster_size}"
+  count = "${local.processing_host_size}"
 
   connection {
-    host          = "${element(local.all-ips, count.index)}"
+    host          = "${element(local.processing-ips, count.index)}"
     user          = "${var.ssh_user}"
     private_key   = "${local.ssh_key}"
     agent         = "${local.ssh_agent}"
@@ -77,6 +77,97 @@ resource "null_resource" "deploy-config" {
     source = "${path.module}/scripts/deploy.sh"
     destination = "/tmp/deploy.sh"
   }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",
+      "sudo mv /tmp/deploy.sh /opt/ventura/framework/deploy.sh",
+      "sudo chown ventura:ventura /opt/ventura/framework/deploy.sh",
+      "chmod 755 /opt/ventura/framework/deploy.sh",
+      "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1"
+    ]
+  }
+}
+
+data "template_file" "kafka_broker_config" {
+  template = "${file("${path.module}/config/server.properties")}"
+  count = "${local.broker_size}"
+  vars {
+    broker_id = "${count.index}"
+    broker_hostname = "${element(local.broker-nodes, count.index)}"
+  }
+}
+
+resource "null_resource" "deploy-config-brokers" {
+  depends_on = ["null_resource.cluster-preconfig-hook-continue-on-fail", "null_resource.cluster-preconfig-hook-stop-on-fail"]
+  count = "${local.broker_size}"
+
+  connection {
+    host          = "${element(local.broker-nodes, count.index)}"
+    user          = "${var.ssh_user}"
+    private_key   = "${local.ssh_key}"
+    agent         = "${local.ssh_agent}"
+    bastion_host  = "${local.bastion-host}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo -n echo This will fail unless we have passwordless sudo access"
+    ]
+  }
+
+  provisioner "file" {
+    source = "${path.module}/scripts/deploy_kafka.sh"
+    destination = "/tmp/deploy.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",
+      "sudo mv /tmp/deploy.sh /opt/ventura/framework/deploy.sh",
+      "sudo chown ventura:ventura /opt/ventura/framework/deploy.sh",
+      "chmod 755 /opt/ventura/framework/deploy.sh",
+      "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1"
+    ]
+  }
+
+  provisioner "file" {
+    content = "${element(data.template_file.kafka_broker_config.*.rendered, count.index)}"
+    destination = "/tmp/server.properties"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "while [ ! -f /opt/ventura/framework/kafka/bin/kafka-server-start.sh ]; do sleep 1; done",
+      "sudo mv /tmp/server.properties /opt/ventura/framework/kafka/config/",
+      "sudo chown ventura:ventura /opt/ventura/framework/kafka/config/server.properties"
+    ]
+  }
+}
+
+resource "null_resource" "deploy-config-generator" {
+  depends_on = ["null_resource.cluster-preconfig-hook-continue-on-fail", "null_resource.cluster-preconfig-hook-stop-on-fail"]
+  count = "${local.generator_size}"
+
+  connection {
+    host          = "${element(local.generator-nodes, count.index)}"
+    user          = "${var.ssh_user}"
+    private_key   = "${local.ssh_key}"
+    agent         = "${local.ssh_agent}"
+    bastion_host  = "${local.bastion-host}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo -n echo This will fail unless we have passwordless sudo access"
+    ]
+  }
+
+  provisioner "file" {
+    source = "${path.module}/scripts/deploy_generator.sh"
+    destination = "/tmp/deploy.sh"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",
@@ -109,12 +200,18 @@ resource "null_resource" "deploy-config" {
 
 
 locals {
-  cluster_size = "${1 + var.worker["quantity"]}"
+  cluster_size = "${1 + var.worker["quantity"] + var.broker["quantity"] + var.generator["quantity"]}"
+  processing_host_size = "${1 + var.worker["quantity"]}"
+  broker_size = "${var.broker["quantity"]}"
+  generator_size = "${var.generator["quantity"]}"
   bastion-host  = "${google_compute_instance.master.network_interface.0.access_config.0.nat_ip}"
   master-node = "${google_compute_instance.master.network_interface.0.network_ip}"
   worker-nodes = ["${google_compute_instance.worker.*.network_interface.0.network_ip}"]
+  broker-nodes = ["${google_compute_instance.broker.*.network_interface.0.network_ip}"]
+  generator-nodes = ["${google_compute_instance.generator.*.network_interface.0.network_ip}"]
 
-  all-ips       = "${concat(list(local.master-node), local.worker-nodes)}"
+  processing-ips = "${concat(list(local.master-node), local.worker-nodes)}"
+  all-ips       = "${concat(list(local.master-node), local.worker-nodes, local.broker-nodes, local.generator-nodes)}"
 
   ssh_key_base64  = "${base64encode(tls_private_key.ssh.private_key_pem)}"
   ssh_key       = "${base64decode(local.ssh_key_base64)}"

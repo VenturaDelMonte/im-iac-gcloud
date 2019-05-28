@@ -30,20 +30,28 @@ sed -i '/^pool/s/^/#/g' /etc/ntp.conf
 echo "server metadata.google.internal iburst" | tee -a /etc/ntp.conf
 service ntp restart
 
+curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
+bash install-monitoring-agent.sh
+
 mkdir -p /opt/ventura
 mkdir -p /opt/ventura/framework
 chown -R ventura:ventura /opt/ventura/framework
 
 mkdir -p /data/1/
 mkfs.ext4 -F /dev/nvme0n1
-mount /dev/nvme0n1 /data/1/
+mount -o discard,defaults,nobarrier /dev/nvme0n1 /data/1/
 chmod a+w /data/1/
+mkdir -p /data/1/data
+mkdir -p /data/1/tmp
+mkdir -p /data/1/check
+mkdir -p /data/1/kafka
 chown -R ventura:ventura /data/1/
 
 mkdir -p /data/2/
 mkfs.ext4 -F /dev/nvme0n2
-mount /dev/nvme0n2 /data/2/
+mount -o discard,defaults,nobarrier /dev/nvme0n2 /data/2/
 chmod a+w /data/2/
+mkdir -p /data/2/kafka
 chown -R ventura:ventura /data/2/
 
 echo "* - nofile 65536" | tee -a /etc/security/limits.conf
