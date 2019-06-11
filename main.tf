@@ -78,13 +78,20 @@ resource "null_resource" "deploy-config" {
     destination = "/tmp/deploy.sh"
   }
 
+  provisioner "file" {
+    content = "${local.broker-list}"
+    destination = "/tmp/brokers.txt"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",
       "sudo mv /tmp/deploy.sh /opt/ventura/framework/deploy.sh",
       "sudo chown ventura:ventura /opt/ventura/framework/deploy.sh",
       "chmod 755 /opt/ventura/framework/deploy.sh",
-      "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1"
+      "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1",
+      "sudo chown ventura:ventura /tmp/brokers.txt",
+      "sudo sed 's/.$//' /tmp/brokers.txt"
     ]
   }
 }
@@ -121,6 +128,16 @@ resource "null_resource" "deploy-config-brokers" {
     destination = "/tmp/deploy.sh"
   }
 
+  provisioner "file" {
+    content = "${element(data.template_file.kafka_broker_config.*.rendered, count.index)}"
+    destination = "/tmp/server.properties"
+  }
+
+  provisioner "file" {
+    content = "${local.broker-list}"
+    destination = "/tmp/brokers.txt"
+  }
+
   provisioner "remote-exec" {
     inline = [
       "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done",
@@ -131,16 +148,13 @@ resource "null_resource" "deploy-config-brokers" {
     ]
   }
 
-  provisioner "file" {
-    content = "${element(data.template_file.kafka_broker_config.*.rendered, count.index)}"
-    destination = "/tmp/server.properties"
-  }
-
   provisioner "remote-exec" {
     inline = [
       "while [ ! -f /opt/ventura/framework/kafka/bin/kafka-server-start.sh ]; do sleep 1; done",
       "sudo mv /tmp/server.properties /opt/ventura/framework/kafka/config/",
-      "sudo chown ventura:ventura /opt/ventura/framework/kafka/config/server.properties"
+      "sudo chown ventura:ventura /opt/ventura/framework/kafka/config/server.properties",
+      "sudo chown ventura:ventura /tmp/brokers.txt",
+      "sudo sed 's/.$//' /tmp/brokers.txt"
     ]
   }
 }
@@ -177,6 +191,11 @@ resource "null_resource" "deploy-config-generator" {
       "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1"
     ]
   }
+
+  provisioner "file" {
+    content = "${local.broker-list}"
+    destination = "/tmp/brokers.txt"
+  }
 }
 
 # resource "null_resource" "start-flink" {
@@ -210,6 +229,7 @@ locals {
   broker-nodes = ["${google_compute_instance.broker.*.network_interface.0.network_ip}"]
   generator-nodes = ["${google_compute_instance.generator.*.network_interface.0.network_ip}"]
 
+  broker-list = "${join(",", formatlist("%s:9092", local.broker-nodes))}"
   processing-ips = "${concat(list(local.master-node), local.worker-nodes)}"
   all-ips       = "${concat(list(local.master-node), local.worker-nodes, local.broker-nodes, local.generator-nodes)}"
 
@@ -221,7 +241,7 @@ locals {
       # Make sure to wait for image load to complete
       # Make sure bootstrap is done on all nodes before proceeding
       "cluster-preconfig" = [
-        "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 5; done"
+        "while [ ! -f /opt/ventura/.bootstrap_complete ]; do sleep 1; done"
       ]
   }
 }

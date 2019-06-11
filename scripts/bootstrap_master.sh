@@ -2,30 +2,17 @@
 
 exec &> >(tee -a /tmp/bootstrap.log)
 
-until apt-get update; do
+until apt update; do
     sleep 2
 done
 
-until apt-get install -y \
-    unzip \
-    p7zip-full \
-    python \
-    thin-provisioning-tools \
-    pv \
-    nfs-client \
-    g++ \
-    openjdk-8-jdk \
-    tmux \
-    vim \
-    cmake \
-    ntp \
-    iperf3 \
-    git \
-    htop \
-    pdsh \
-    lvm2; do
+until apt upgrade -y; do
     sleep 2
-  done
+done
+
+until apt install -y unzip p7zip-full python g++ openjdk-8-jdk tmux vim cmake iperf3 htop pdsh git; do
+    sleep 2
+done
 
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
@@ -34,11 +21,12 @@ until apt-get install -y \
     sleep 2
 done
 
-service ntp stop
-cp /etc/ntp.conf /etc/ntp.conf.backup
-sed -i '/^pool/s/^/#/g' /etc/ntp.conf
-echo "server metadata.google.internal iburst" | tee -a /etc/ntp.conf
-service ntp restart
+# service ntp stop
+# cp /etc/ntp.conf /etc/ntp.conf.backup
+# cp /home/ventura/ntp.conf /etc/ntp.conf
+# chown root:root /etc/ntp.conf
+# ntpdate -dv metadata.google.internal
+# service ntp restart
 
 curl -sSO https://dl.google.com/cloudagents/install-monitoring-agent.sh
 bash install-monitoring-agent.sh
@@ -53,10 +41,12 @@ mkdir -p /data/1/data
 mkdir -p /data/1/check
 mkdir -p /data/1/tmp
 mkdir -p /data/1/namenode
+mkdir -p /data/1/flink
 chown -R ventura:ventura /data/1
 
 mkdir -p /data/2
 mkdir -p /data/2/zookeeper/tmp/
+mkdir -p /data/2/flink
 chown -R ventura:ventura /data/2
 
 echo "* - nofile 65536" | tee -a /etc/security/limits.conf

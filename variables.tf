@@ -27,15 +27,10 @@ variable "ssh_key" {
   default = ""
 }
 
-variable "password" {
-  description = "Password for the initial admin user; blank to generate"
-  default     = ""
-}
-
 variable "image" {
   default = {
-    project = "ubuntu-os-cloud"
-    family = "ubuntu-1804-lts"
+    project = "debian-cloud"
+    family = "debian-9"
   }
 }
 
@@ -47,7 +42,7 @@ variable "master" {
     disk_size           = 10
     boot_disk_type      = "pd-standard"
     hostname            = "master"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }
@@ -58,11 +53,11 @@ variable "worker" {
   default = {
     machine_type        = "n1-standard-16"
     disk_size           = 10
-    quantity            = 3
+    quantity            = 8
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "worker"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }
@@ -73,11 +68,11 @@ variable "broker" {
   default = {
     machine_type        = "n1-standard-16"
     disk_size           = 10
-    quantity            = 2
+    quantity            = 4
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "broker"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }
@@ -86,13 +81,12 @@ variable "generator" {
   type = "map"
 
   default = {
-    machine_type        = "n1-standard-16"
+    machine_type        = "n1-custom-16-32768"
     disk_size           = 10
-    quantity            = 2
+    quantity            = 4
     boot_disk_type      = "pd-standard"
-    scratch_disk_interface = "NVME"
     hostname            = "generator"
-    preemptible         = true
+    preemptible         = false
     allow_restart       = false
   }
 }

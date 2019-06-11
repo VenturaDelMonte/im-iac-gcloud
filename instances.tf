@@ -31,13 +31,14 @@ resource "google_compute_instance" "master" {
   scheduling {
     preemptible = "${var.master["preemptible"]}"
     automatic_restart = "${var.master["allow_restart"]}"
+    on_host_maintenance = "TERMINATE"
   }
 
   can_ip_forward = true
 
   service_account {
     email = "${var.service_account_email}"
-    scopes = ["compute-rw", "storage-ro", "logging-write", "monitoring"]
+    scopes = ["compute-rw", "storage-rw", "logging-write", "monitoring"]
   }
 
   metadata_startup_script = <<EOF
@@ -69,15 +70,19 @@ users:
 write_files:
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/bashrc"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.bashrc
+- encoding: b64
+  content: ${base64encode(file("${path.module}/config/ntp.conf"))}
+  permissions: '0644'
+  path: /home/ventura/ntp.conf
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/ssh_config"))}
   permissions: '0400'
   path: /home/ventura/.ssh/config
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/profile"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.profile
 - encoding: b64
   content: ${base64encode(file("${path.module}/scripts/bootstrap_master.sh"))}
@@ -110,9 +115,9 @@ resource "google_compute_instance" "worker" {
   count = "${var.worker["quantity"]}"
   hostname = "${format("im-worker-%02d.im-cluster", count.index + 1)}"
 
-  allow_stopping_for_update = true
+  allow_stopping_for_update = false
 
-  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}"]
+  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}", "flink"]
 
   boot_disk {
     initialize_params {
@@ -133,6 +138,7 @@ resource "google_compute_instance" "worker" {
   scheduling {
     preemptible = "${var.worker["preemptible"]}"
     automatic_restart = "${var.worker["allow_restart"]}"
+    on_host_maintenance = "TERMINATE"
   }
 
   network_interface {
@@ -178,12 +184,16 @@ write_files:
   permissions: '0755'
   path: /opt/ventura/scripts/bootstrap.sh
 - encoding: b64
+  content: ${base64encode(file("${path.module}/config/ntp.conf"))}
+  permissions: '0644'
+  path: /home/ventura/ntp.conf
+- encoding: b64
   content: ${base64encode(file("${path.module}/config/bashrc"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.bashrc
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/ssh_config"))}
-  permissions: '0400'
+  permissions: '0600'
   path: /home/ventura/.ssh/config
 - encoding: b64
   content: ${base64encode("${tls_private_key.ssh.private_key_pem}")}
@@ -195,7 +205,7 @@ write_files:
   path: /home/ventura/.ssh/id_rsa.pub
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/profile"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.profile
 runcmd:
 - chown ventura:ventura /home/ventura/.ssh/id_rsa.pub
@@ -217,9 +227,9 @@ resource "google_compute_instance" "broker" {
   count = "${var.broker["quantity"]}"
   hostname = "${format("im-broker-%02d.im-cluster", count.index + 1)}"
 
-  allow_stopping_for_update = true
+  allow_stopping_for_update = false
 
-  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}"]
+  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}", "broker"]
 
   boot_disk {
     initialize_params {
@@ -240,6 +250,7 @@ resource "google_compute_instance" "broker" {
   scheduling {
     preemptible = "${var.broker["preemptible"]}"
     automatic_restart = "${var.broker["allow_restart"]}"
+    on_host_maintenance = "TERMINATE"
   }
 
   network_interface {
@@ -285,12 +296,16 @@ write_files:
   permissions: '0755'
   path: /opt/ventura/scripts/bootstrap.sh
 - encoding: b64
+  content: ${base64encode(file("${path.module}/config/ntp.conf"))}
+  permissions: '0644'
+  path: /home/ventura/ntp.conf
+- encoding: b64
   content: ${base64encode(file("${path.module}/config/bashrc"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.bashrc
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/ssh_config"))}
-  permissions: '0400'
+  permissions: '0600'
   path: /home/ventura/.ssh/config
 - encoding: b64
   content: ${base64encode("${tls_private_key.ssh.private_key_pem}")}
@@ -302,7 +317,7 @@ write_files:
   path: /home/ventura/.ssh/id_rsa.pub
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/profile"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.profile
 runcmd:
 - chown ventura:ventura /home/ventura/.ssh/id_rsa.pub
@@ -324,9 +339,9 @@ resource "google_compute_instance" "generator" {
   count = "${var.generator["quantity"]}"
   hostname = "${format("im-generator-%02d.im-cluster", count.index + 1)}"
 
-  allow_stopping_for_update = true
+  allow_stopping_for_update = false
 
-  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}"]
+  tags = ["im-cluster-${random_id.clusterid.hex}", "im-worker-${random_id.clusterid.hex}", "generator"]
 
   boot_disk {
     initialize_params {
@@ -335,10 +350,11 @@ resource "google_compute_instance" "generator" {
       type = "${var.generator["boot_disk_type"]}"
     }
   }
-  
+
   scheduling {
     preemptible = "${var.generator["preemptible"]}"
     automatic_restart = "${var.generator["allow_restart"]}"
+    on_host_maintenance = "TERMINATE"
   }
 
   network_interface {
@@ -384,12 +400,16 @@ write_files:
   permissions: '0755'
   path: /opt/ventura/scripts/bootstrap.sh
 - encoding: b64
+  content: ${base64encode(file("${path.module}/config/ntp.conf"))}
+  permissions: '0644'
+  path: /home/ventura/ntp.conf
+- encoding: b64
   content: ${base64encode(file("${path.module}/config/bashrc"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.bashrc
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/ssh_config"))}
-  permissions: '0400'
+  permissions: '0600'
   path: /home/ventura/.ssh/config
 - encoding: b64
   content: ${base64encode("${tls_private_key.ssh.private_key_pem}")}
@@ -401,7 +421,7 @@ write_files:
   path: /home/ventura/.ssh/id_rsa.pub
 - encoding: b64
   content: ${base64encode(file("${path.module}/config/profile"))}
-  permissions: '0600'
+  permissions: '0644'
   path: /home/ventura/.profile
 runcmd:
 - chown ventura:ventura /home/ventura/.ssh/id_rsa.pub

@@ -1,4 +1,11 @@
 
+
+Host sshgate
+    Hostname sshgate.tu-berlin.de
+    User ventura-delmonte
+    ForwardAgent no
+    ForwardX11 no
+
 Host *
     StrictHostKeyChecking no
 

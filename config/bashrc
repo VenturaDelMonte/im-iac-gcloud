@@ -5,6 +5,13 @@ export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 export EXPERIMENT_DIR=/opt/ventura/framework
 export EXPERIMENT_JOBS_DIR=$EXPERIMENT_DIR/flink-build-jobs
 
+#export GSUTIL=/snap/bin/gsutil
+
+export GSUTIL=gsutil
+export TARGET_DIR=/opt/ventura/framework
+export REMOTE_BUCKET=code-incremental-migration
+
+
 alias ll='ls -lah'
 alias l='ls -lah'
 
