@@ -16,7 +16,7 @@ variable "region" {
   default = "europe-north1"
 }
 variable "zone" {
-  default = "a"
+  default = "b"
 }
 
 variable "ssh_user" {
