@@ -359,7 +359,6 @@ resource "google_compute_instance" "generator" {
 
   network_interface {
     subnetwork  = "${google_compute_subnetwork.im_subnet.self_link}"
-    
   }
 
   can_ip_forward = true

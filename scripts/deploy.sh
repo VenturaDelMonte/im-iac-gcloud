@@ -35,7 +35,8 @@ rm -rf $TARGET_DIR/scripts.7z > /dev/null 2>&1
 
 mv $TARGET_DIR/flink-build/opt/* $TARGET_DIR/flink-build/lib/ > /dev/null 2>&1
 
-$GSUTIL cp gs://$REMOTE_BUCKET/flink-conf.yaml $TARGET_DIR/flink-build/conf/ > /dev/null 2>&1
+$GSUTIL cp gs://$REMOTE_BUCKET/flink-build/flink-conf.yaml $TARGET_DIR/flink-build/conf/ > /dev/null 2>&1
+$GSUTIL cp gs://$REMOTE_BUCKET/flink-vanilla/flink-conf.yaml $TARGET_DIR/flink-vanilla/conf/ > /dev/null 2>&1
 
 if [[ $HOSTNAME == *"master"* ]]; then
     ./hdfs/bin/hadoop namenode -format > /dev/null 2>&1 &
@@ -46,4 +47,4 @@ if [[ $HOSTNAME == *"master"* ]]; then
 fi
 
 
-mkdir logs > /dev/null 2>&1
+mkdir -p $TARGET_DIR/logs > /dev/null 2>&1

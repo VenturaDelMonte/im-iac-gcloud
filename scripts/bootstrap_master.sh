@@ -6,9 +6,9 @@ until apt update; do
     sleep 2
 done
 
-until apt upgrade -y; do
-    sleep 2
-done
+# until apt upgrade -y; do
+#     sleep 2
+# done
 
 until apt install -y unzip p7zip-full python g++ openjdk-8-jdk tmux vim cmake iperf3 htop pdsh git; do
     sleep 2

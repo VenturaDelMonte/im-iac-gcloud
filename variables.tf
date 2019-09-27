@@ -16,7 +16,7 @@ variable "region" {
   default = "europe-north1"
 }
 variable "zone" {
-  default = "b"
+  default = "c"
 }
 
 variable "ssh_user" {
@@ -38,8 +38,9 @@ variable "master" {
   type = "map"
 
   default = {
-    machine_type        = "n1-custom-8-16384"
-    disk_size           = 10
+    #machine_type        = "n1-custom-8-24576"
+    machine_type        = "n1-standard-8"
+    disk_size           = 15
     boot_disk_type      = "pd-standard"
     hostname            = "master"
     preemptible         = false

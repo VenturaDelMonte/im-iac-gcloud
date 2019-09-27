@@ -16,5 +16,5 @@ output "master-internal-address" {
 }
 
 output "ssh-command" {
-    value = "gcloud compute ssh ${var.ssh_user}@im-master --ssh-key-file=/Users/ventura/.ssh/gcloud_rsa -- -D 1080"
+    value = "gcloud beta compute ssh ${var.ssh_user}@im-master --ssh-key-file=/Users/ventura/.ssh/gcloud_rsa -- -D 1080"
 }

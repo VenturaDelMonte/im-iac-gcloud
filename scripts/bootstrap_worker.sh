@@ -6,9 +6,9 @@ until apt update; do
     sleep 2
 done
 
-until apt upgrade -y; do
-    sleep 2
-done
+# until apt upgrade -y; do
+#     sleep 2
+# done
 
 until apt install -y unzip less p7zip-full python vnstat openjdk-8-jdk python-six iperf3 vim htop git; do
     sleep 2
