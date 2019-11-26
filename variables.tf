@@ -40,7 +40,7 @@ variable "master" {
   default = {
     #machine_type        = "n1-custom-8-24576"
     machine_type        = "n1-standard-8"
-    disk_size           = 15
+    disk_size           = 10
     boot_disk_type      = "pd-standard"
     hostname            = "master"
     preemptible         = false
@@ -54,7 +54,7 @@ variable "worker" {
   default = {
     machine_type        = "n1-standard-16"
     disk_size           = 10
-    quantity            = 8
+    quantity            = 0
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "worker"
@@ -69,7 +69,7 @@ variable "broker" {
   default = {
     machine_type        = "n1-standard-16"
     disk_size           = 10
-    quantity            = 4
+    quantity            = 0
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "broker"
@@ -84,7 +84,7 @@ variable "generator" {
   default = {
     machine_type        = "n1-custom-16-32768"
     disk_size           = 10
-    quantity            = 4
+    quantity            = 0
     boot_disk_type      = "pd-standard"
     hostname            = "generator"
     preemptible         = false

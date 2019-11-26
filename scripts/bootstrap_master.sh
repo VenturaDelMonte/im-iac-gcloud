@@ -53,4 +53,6 @@ echo "* - nofile 65536" | tee -a /etc/security/limits.conf
 echo "* - nproc 65536" | tee -a /etc/security/limits.conf
 echo "* - memlock unlimited" | tee -a /etc/security/limits.conf
 
+#curl https://sh.rustup.rs -sSf | sh -s -- -y
+
 touch /opt/ventura/.bootstrap_complete

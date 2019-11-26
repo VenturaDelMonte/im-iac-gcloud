@@ -78,10 +78,10 @@ resource "null_resource" "deploy-config" {
     destination = "/tmp/deploy.sh"
   }
 
-  provisioner "file" {
-    content = "${local.broker-list}"
-    destination = "/tmp/brokers.txt"
-  }
+  # provisioner "file" {
+  #   content = "${local.broker-list}"
+  #   destination = "/tmp/brokers.txt"
+  # }
 
   provisioner "remote-exec" {
     inline = [
@@ -90,8 +90,8 @@ resource "null_resource" "deploy-config" {
       "sudo chown ventura:ventura /opt/ventura/framework/deploy.sh",
       "chmod 755 /opt/ventura/framework/deploy.sh",
       "/opt/ventura/framework/deploy.sh > /opt/ventura/framework/deploy.log 2>&1",
-      "sudo chown ventura:ventura /tmp/brokers.txt",
-      "sudo sed 's/.$//' /tmp/brokers.txt"
+      # "sudo chown ventura:ventura /tmp/brokers.txt",
+      # "sudo sed 's/.$//' /tmp/brokers.txt"
     ]
   }
 }

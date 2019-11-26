@@ -5,11 +5,13 @@ HOSTNAME=`hostname`
 # REMOTE_BUCKET=code-incremental-migration
 
 cd $TARGET_DIR/ 
+mkdir -p $TARGET_DIR/megaphone
 
 $GSUTIL cp gs://$REMOTE_BUCKET/flink-build.7z $TARGET_DIR/ > /dev/null 2>&1 &
 $GSUTIL cp gs://$REMOTE_BUCKET/flink-vanilla.7z $TARGET_DIR/ > /dev/null 2>&1 &
 $GSUTIL cp gs://$REMOTE_BUCKET/hdfs.7z $TARGET_DIR/ > /dev/null 2>&1 &
 $GSUTIL cp gs://$REMOTE_BUCKET/scripts.7z $TARGET_DIR/ > /dev/null 2>&1 &
+$GSUTIL cp gs://$REMOTE_BUCKET/megaphone.7z $TARGET_DIR/ > /dev/null 2>&1 &
 
 if [[ $HOSTNAME == *"master"* ]]; then
     mkdir -p $TARGET_DIR/flink-build-jobs > /dev/null 2>&1
@@ -27,10 +29,12 @@ LC_ALL=C
 7z x ./flink-vanilla.7z > /dev/null 2>&1 &
 7z x ./hdfs.7z > /dev/null 2>&1 &
 7z x ./scripts.7z > /dev/null 2>&1 &
+7z x ./megaphone.7z -o$TARGET_DIR/megaphone/  > /dev/null 2>&1 &
 wait
 rm -rf ./flink-build.7z > /dev/null 2>&1
 rm -rf ./flink-vanilla.7z > /dev/null 2>&1
 rm -rf ./hdfs.7z > /dev/null 2>&1
+rm -rf ./megaphone.7z > /dev/null 2>&1
 rm -rf $TARGET_DIR/scripts.7z > /dev/null 2>&1
 
 mv $TARGET_DIR/flink-build/opt/* $TARGET_DIR/flink-build/lib/ > /dev/null 2>&1
@@ -44,6 +48,7 @@ if [[ $HOSTNAME == *"master"* ]]; then
     7z x ./kafka.7z > /dev/null 2>&1 &
     wait
     rm -rf $TARGET_DIR/kafka.7z > /dev/null 2>&1
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
 fi
 
 

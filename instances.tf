@@ -127,13 +127,13 @@ resource "google_compute_instance" "worker" {
     }
   }
 
-  scratch_disk {
-    interface = "${var.worker["scratch_disk_interface"]}"  
-  }
+  # scratch_disk {
+  #   interface = "${var.worker["scratch_disk_interface"]}"  
+  # }
 
-  scratch_disk {
-    interface = "${var.worker["scratch_disk_interface"]}"  
-  }
+  # scratch_disk {
+  #   interface = "${var.worker["scratch_disk_interface"]}"  
+  # }
 
   scheduling {
     preemptible = "${var.worker["preemptible"]}"
