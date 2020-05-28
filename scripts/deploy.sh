@@ -48,8 +48,8 @@ if [[ $HOSTNAME == *"master"* ]]; then
     7z x ./kafka.7z > /dev/null 2>&1 &
     wait
     rm -rf $TARGET_DIR/kafka.7z > /dev/null 2>&1
-    curl https://sh.rustup.rs -sSf | sh -s -- -y
 fi
 
+curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 mkdir -p $TARGET_DIR/logs > /dev/null 2>&1

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 exec &> >(tee -a /tmp/bootstrap.log)
+HOSTNAME=`hostname`
 
 until apt update; do
     sleep 2
@@ -10,7 +11,7 @@ done
 #     sleep 2
 # done
 
-until apt install -y unzip less p7zip-full python vnstat openjdk-8-jdk python-six iperf3 vim htop git; do
+until apt install -y unzip less p7zip-full python vnstat openjdk-8-jdk python-six iperf3 g++ vim htop git; do
     sleep 2
 done
 
@@ -27,6 +28,8 @@ bash install-monitoring-agent.sh
 mkdir -p /opt/ventura
 mkdir -p /opt/ventura/framework
 chown -R ventura:ventura /opt/ventura/framework
+
+#if [[ $HOSTNAME == *"broker"* ]]; then
 
 # mkdir -p /data/1/
 # mkfs.ext4 -F /dev/nvme0n1
@@ -47,6 +50,8 @@ chown -R ventura:ventura /opt/ventura/framework
 # mkdir -p /data/2/flink
 # chown -R ventura:ventura /data/2/
 
+#fi
+
 sysctl vm.swappiness=1
 echo 3 | sudo tee /proc/sys/vm/drop_caches
 
@@ -56,3 +61,4 @@ echo "* - memlock unlimited" | tee -a /etc/security/limits.conf
 
 touch /opt/ventura/.bootstrap_complete
 echo `date` | tee -a /opt/ventura/.bootstrap_complete
+

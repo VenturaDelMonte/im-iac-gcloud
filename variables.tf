@@ -16,7 +16,7 @@ variable "region" {
   default = "europe-north1"
 }
 variable "zone" {
-  default = "c"
+  default = "a"
 }
 
 variable "ssh_user" {
@@ -54,7 +54,7 @@ variable "worker" {
   default = {
     machine_type        = "n1-standard-16"
     disk_size           = 10
-    quantity            = 0
+    quantity            = 8
     boot_disk_type      = "pd-standard"
     scratch_disk_interface = "NVME"
     hostname            = "worker"
