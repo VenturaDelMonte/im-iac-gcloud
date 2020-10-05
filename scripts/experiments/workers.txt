@@ -1,0 +1,8 @@
+im-worker-01:31337
+im-worker-02:31337
+im-worker-03:31337
+im-worker-04:31337
+im-worker-05:31337
+im-worker-06:31337
+im-worker-07:31337
+im-worker-08:31337
